@@ -18,7 +18,7 @@ public class L {
     private static final String suffixLine = "└───────────────────────────────────────────────────────────────────────────────────\n";
 
     private static final int JSON_PRETTIFY_INDENT = 2; // JSON 格式化参数
-    private static final int DEFAULT_OFFSET       = 6; // 在本类的静态方法中，默认有 6 层方法栈
+    private static final int DEFAULT_OFFSET       = 4; // 在本类的静态方法中，默认有 7 层方法栈
 
     private static final Logger sDefaultLevelLogger = new Logger();
 
@@ -163,10 +163,10 @@ public class L {
         try {
             json = json.trim();
             if (json.startsWith("{")) {
-                return new JSONObject(json).toString(JSON_PRETTIFY_INDENT);
+                return jsonObjectToString(json);
             }
             if (json.startsWith("[")) {
-                return new JSONArray(json).toString(JSON_PRETTIFY_INDENT);
+                return jsonArrayToString(json);
             }
         } catch (Exception e) {
             return "Invalid JSON Format.";
@@ -197,6 +197,79 @@ public class L {
         sGlobalToggle = globalToggle;
     }
 
+    /**
+     * MockTextUtils
+     */
+
+    private static boolean isEmpty(String str) {
+        return str == null || str.length() == 0;
+    }
+
+    /**
+     * Mock JSONArray
+     */
+    static String jsonArrayToString(String string) {
+        try {
+            Class mJsonArrayClass = Class.forName("org.json.JSONArray");
+            //noinspection unchecked
+            Constructor constructor = mJsonArrayClass.getConstructor(String.class);
+            Object mJsonArray = constructor.newInstance(string);
+            //noinspection unchecked
+            Method method = mJsonArrayClass.getDeclaredMethod("toString", int.class);
+            return (String) method.invoke(mJsonArray, JSON_PRETTIFY_INDENT);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Mock JSONObject
+     */
+    static String jsonObjectToString(String string) {
+        try {
+            Class mJsonObjectClass = Class.forName("org.json.JSONObject");
+            //noinspection unchecked
+            Constructor constructor = mJsonObjectClass.getConstructor(String.class);
+            Object mJsonObject = constructor.newInstance(string);
+            //noinspection unchecked
+            Method method = mJsonObjectClass.getDeclaredMethod("toString", int.class);
+            return (String) method.invoke(mJsonObject, JSON_PRETTIFY_INDENT);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * 使用反射调用系统的 log 方法
+     *
+     * @param methodName 日志类型，分为 i，w，v，e，wtf 五种
+     * @param tag        日志 Tag
+     * @param message    日志信息
+     * @param throwable  日志 throwable 参数
+     */
+    private static void callNativeLog(String methodName, String tag, String message, Throwable throwable) {
+        if ("json".equals(methodName)) {
+            // 系统没有 json 类型的方法，使用 i 代替
+            methodName = "i";
+        }
+        try {
+            Class logClass = Class.forName("android.util.Log");
+            if (throwable == null) {
+                //noinspection unchecked
+                Method method = logClass.getMethod(methodName, String.class, String.class);
+                method.invoke(null, tag, message);
+            } else {
+                //noinspection unchecked
+                Method method = logClass.getMethod(methodName, String.class, String.class, Throwable.class);
+                method.invoke(null, tag, message, throwable);
+            }
+        } catch (Exception e) {
+            throw new IllegalStateException("本项目只能在 Android 平台中使用: ");
+        }
+    }
+
     public static class Logger implements Cloneable {
 
         private int     mMethodOffset = DEFAULT_OFFSET;
@@ -212,12 +285,6 @@ public class L {
         @Override
         protected Object clone() throws CloneNotSupportedException {
             return super.clone();
-        }
-
-        private void filterLog(Callback callback) {
-            if (mToggle && sGlobalToggle) {
-                callback.call();
-            }
         }
 
         private Logger setMethodOffset(int methodOffset) {
@@ -259,234 +326,82 @@ public class L {
             return this;
         }
 
+        private void printLog(final String logType, final String message, final Throwable throwable) {
+            if (mToggle && sGlobalToggle) {
+                getCallerClass(new StackTraceCallback() {
+                    @Override
+                    public void call(String callerName, StackTraceElement element) {
+                        if (element == null) {
+                            String msg = message;
+                            if ("json".equals(logType)) {
+                                msg = prettifyJsonWithBorder(message);
+                            }
+                            callNativeLog(logType, getTag(callerName), msg, throwable);
+                        } else {
+                            String msg = message;
+                            if ("json".equals(logType)) {
+                                msg = prettifyJson(message);
+                            }
+                            callNativeLog(logType, getTag(callerName), printWithPath(callerName, element, msg), throwable);
+                        }
+                    }
+                });
+            }
+        }
+
+        private String getTag(String callerName) {
+            return isEmpty(mTag) ? callerName : mTag;
+        }
+
         public void i(final String message) {
-            filterLog(new Callback() {
-                @Override
-                public void call() {
-                    getCallerClass(new ClassNameCallback() {
-                        @Override
-                        public void call(String callerName) {
-                            Log.i(TextUtils.isEmpty(mTag) ? callerName : mTag, message);
-                        }
-                    }, new StackTraceCallback() {
-                        @Override
-                        public void call(String callerName, StackTraceElement element) {
-                            Log.i(TextUtils.isEmpty(mTag) ? callerName : mTag, printWithPath(callerName, element, message));
-                        }
-                    });
-                }
-            });
+            printLog("i", message, null);
         }
 
         public void w(final String message) {
-            filterLog(new Callback() {
-                @Override
-                public void call() {
-                    getCallerClass(new ClassNameCallback() {
-                        @Override
-                        public void call(String callerName) {
-                            Log.w(TextUtils.isEmpty(mTag) ? callerName : mTag, message);
-                        }
-                    }, new StackTraceCallback() {
-                        @Override
-                        public void call(String callerName, StackTraceElement element) {
-                            Log.w(TextUtils.isEmpty(mTag) ? callerName : mTag, printWithPath(callerName, element, message));
-                        }
-                    });
-                }
-            });
+            printLog("w", message, null);
         }
 
         public void e(final String message) {
-            filterLog(new Callback() {
-                @Override
-                public void call() {
-                    getCallerClass(new ClassNameCallback() {
-                        @Override
-                        public void call(String callerName) {
-                            Log.e(TextUtils.isEmpty(mTag) ? callerName : mTag, message);
-                        }
-                    }, new StackTraceCallback() {
-                        @Override
-                        public void call(String callerName, StackTraceElement element) {
-                            Log.e(TextUtils.isEmpty(mTag) ? callerName : mTag, printWithPath(callerName, element, message));
-                        }
-                    });
-                }
-            });
+            printLog("e", message, null);
         }
 
         public void v(final String message) {
-            filterLog(new Callback() {
-                @Override
-                public void call() {
-                    getCallerClass(new ClassNameCallback() {
-                        @Override
-                        public void call(String callerName) {
-                            Log.v(TextUtils.isEmpty(mTag) ? callerName : mTag, message);
-                        }
-                    }, new StackTraceCallback() {
-                        @Override
-                        public void call(String callerName, StackTraceElement element) {
-                            Log.v(TextUtils.isEmpty(mTag) ? callerName : mTag, printWithPath(callerName, element, message));
-                        }
-                    });
-                }
-            });
+            printLog("v", message, null);
         }
 
         public void wtf(final String message) {
-            filterLog(new Callback() {
-                @Override
-                public void call() {
-                    getCallerClass(new ClassNameCallback() {
-                        @Override
-                        public void call(String callerName) {
-                            Log.wtf(TextUtils.isEmpty(mTag) ? callerName : mTag, message);
-                        }
-                    }, new StackTraceCallback() {
-                        @Override
-                        public void call(String callerName, StackTraceElement element) {
-                            Log.wtf(TextUtils.isEmpty(mTag) ? callerName : mTag, printWithPath(callerName, element, message));
-                        }
-                    });
-                }
-            });
+            printLog("wtf", message, null);
         }
 
         public void e(final Throwable throwable) {
-            filterLog(new Callback() {
-                @Override
-                public void call() {
-                    getCallerClass(new ClassNameCallback() {
-                        @Override
-                        public void call(String callerName) {
-                            Log.e(TextUtils.isEmpty(mTag) ? callerName : mTag, throwable.getMessage(), throwable);
-                        }
-                    }, new StackTraceCallback() {
-                        @Override
-                        public void call(String callerName, StackTraceElement element) {
-                        }
-                    });
-                }
-            });
+            printLog("e", throwable.getMessage(), throwable);
         }
 
         public void i(final String prepare, final Object... args) {
-            filterLog(new Callback() {
-                @Override
-                public void call() {
-                    getCallerClass(new ClassNameCallback() {
-                        @Override
-                        public void call(String callerName) {
-                            Log.i(TextUtils.isEmpty(mTag) ? callerName : mTag, String.format(prepare, args));
-                        }
-                    }, new StackTraceCallback() {
-                        @Override
-                        public void call(String callerName, StackTraceElement element) {
-                            Log.i(TextUtils.isEmpty(mTag) ? callerName : mTag, printWithPath(callerName, element, String.format(prepare, args)));
-                        }
-                    });
-                }
-            });
+            printLog("i", String.format(prepare, args), null);
         }
 
         public void e(final String prepare, final Object... args) {
-            filterLog(new Callback() {
-                @Override
-                public void call() {
-                    getCallerClass(new ClassNameCallback() {
-                        @Override
-                        public void call(String callerName) {
-                            Log.e(TextUtils.isEmpty(mTag) ? callerName : mTag, String.format(prepare, args));
-                        }
-                    }, new StackTraceCallback() {
-                        @Override
-                        public void call(String callerName, StackTraceElement element) {
-                            Log.e(TextUtils.isEmpty(mTag) ? callerName : mTag, printWithPath(callerName, element, String.format(prepare, args)));
-                        }
-                    });
-                }
-            });
+            printLog("e", String.format(prepare, args), null);
         }
 
         public void w(final String prepare, final Object... args) {
-            filterLog(new Callback() {
-                @Override
-                public void call() {
-                    getCallerClass(new ClassNameCallback() {
-                        @Override
-                        public void call(String callerName) {
-                            Log.w(TextUtils.isEmpty(mTag) ? callerName : mTag, String.format(prepare, args));
-                        }
-                    }, new StackTraceCallback() {
-                        @Override
-                        public void call(String callerName, StackTraceElement element) {
-                            Log.w(TextUtils.isEmpty(mTag) ? callerName : mTag, printWithPath(callerName, element, String.format(prepare, args)));
-                        }
-                    });
-                }
-            });
+            printLog("w", String.format(prepare, args), null);
         }
 
         public void v(final String prepare, final Object... args) {
-            filterLog(new Callback() {
-                @Override
-                public void call() {
-                    getCallerClass(new ClassNameCallback() {
-                        @Override
-                        public void call(String callerName) {
-                            Log.v(TextUtils.isEmpty(mTag) ? callerName : mTag, String.format(prepare, args));
-                        }
-                    }, new StackTraceCallback() {
-                        @Override
-                        public void call(String callerName, StackTraceElement element) {
-                            Log.v(TextUtils.isEmpty(mTag) ? callerName : mTag, printWithPath(callerName, element, String.format(prepare, args)));
-                        }
-                    });
-                }
-            });
+            printLog("v", String.format(prepare, args), null);
         }
 
         public void wtf(final String prepare, final Object... args) {
-            filterLog(new Callback() {
-                @Override
-                public void call() {
-                    getCallerClass(new ClassNameCallback() {
-                        @Override
-                        public void call(String callerName) {
-                            Log.wtf(TextUtils.isEmpty(mTag) ? callerName : mTag, String.format(prepare, args));
-                        }
-                    }, new StackTraceCallback() {
-                        @Override
-                        public void call(String callerName, StackTraceElement element) {
-                            Log.wtf(TextUtils.isEmpty(mTag) ? callerName : mTag, printWithPath(callerName, element, String.format(prepare, args)));
-                        }
-                    });
-                }
-            });
+            printLog("wtf", String.format(prepare, args), null);
         }
 
         public void json(final String json) {
-            filterLog(new Callback() {
-                @Override
-                public void call() {
-                    getCallerClass(new ClassNameCallback() {
-                        @Override
-                        public void call(String callerName) {
-                            Log.i(TextUtils.isEmpty(mTag) ? callerName : mTag, prettifyJsonWithBorder(json));
-                        }
-                    }, new StackTraceCallback() {
-                        @Override
-                        public void call(String callerName, StackTraceElement element) {
-                            Log.i(TextUtils.isEmpty(mTag) ? callerName : mTag, printWithPath(callerName, element, prettifyJson(json)));
-                        }
-                    });
-                }
-            });
+            printLog("json", json, null);
         }
 
-        private void getCallerClass(ClassNameCallback normalCallback, StackTraceCallback showPathCallback) {
+        private void getCallerClass(StackTraceCallback callback) {
             try {
                 throw new Exception();
             } catch (Exception e) {
@@ -502,15 +417,15 @@ public class L {
                 int lastPointIndex = fullClassName.lastIndexOf(".");
                 if (lastPointIndex > -1) {
                     if (isShowPath) {
-                        showPathCallback.call(fullClassName.substring(lastPointIndex + 1), entries[mMethodOffset]);
+                        callback.call(fullClassName.substring(lastPointIndex + 1), entries[mMethodOffset]);
                     } else {
-                        normalCallback.call(fullClassName.substring(lastPointIndex + 1));
+                        callback.call(fullClassName.substring(lastPointIndex + 1), null);
                     }
                 } else {
                     if (isShowPath) {
-                        showPathCallback.call(fullClassName, entries[mMethodOffset]);
+                        callback.call(fullClassName, entries[mMethodOffset]);
                     } else {
-                        normalCallback.call(fullClassName);
+                        callback.call(fullClassName, null);
                     }
                 }
             }
@@ -525,123 +440,8 @@ public class L {
             return this;
         }
 
-        interface ClassNameCallback {
-            void call(String callerName);
-        }
-
         interface StackTraceCallback {
             void call(String callerName, StackTraceElement element);
-        }
-
-        interface Callback {
-            void call();
-        }
-    }
-
-    static class Log {
-
-        public static void i(String tag, String message) {
-            callNativeLog("i", tag, message, null);
-        }
-
-        public static void v(String tag, String message) {
-            callNativeLog("v", tag, message, null);
-        }
-
-        public static void w(String tag, String message) {
-            callNativeLog("w", tag, message, null);
-        }
-
-        public static void wtf(String tag, String message) {
-            callNativeLog("wtf", tag, message, null);
-        }
-
-        public static void e(String tag, String message) {
-            callNativeLog("e", tag, message, null);
-        }
-
-        public static void e(String tag, String message, Throwable throwable) {
-            callNativeLog("e", tag, message, throwable);
-        }
-
-        private static void callNativeLog(String methodName, String tag, String message, Throwable throwable) {
-            try {
-                Class logClass = Class.forName("android.util.Log");
-                if (throwable == null) {
-                    //noinspection unchecked
-                    Method method = logClass.getMethod(methodName, String.class, String.class);
-                    method.invoke(null, tag, message);
-                } else {
-                    //noinspection unchecked
-                    Method method = logClass.getMethod(methodName, String.class, String.class, Throwable.class);
-                    method.invoke(null, tag, message, throwable);
-                }
-            } catch (Exception e) {
-                throw new IllegalStateException("本项目只能在 Android 平台中使用: ");
-            }
-        }
-    }
-
-    static class TextUtils {
-        public static boolean isEmpty(String str) {
-            return str == null || str.length() == 0;
-        }
-    }
-
-    static class JSONObject {
-
-        private Class  mJsonObjectClass;
-        private Object mJsonObject;
-
-        public JSONObject(String string) {
-            try {
-
-                mJsonObjectClass = Class.forName("org.json.JSONObject");
-                //noinspection unchecked
-                Constructor constructor = mJsonObjectClass.getConstructor(String.class);
-                mJsonObject = constructor.newInstance(string);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        public String toString(int indentType) {
-            try {
-                //noinspection unchecked
-                Method method = mJsonObjectClass.getDeclaredMethod("toString", int.class);
-                return (String) method.invoke(mJsonObject, indentType);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
-        }
-    }
-
-    static class JSONArray {
-
-        private Class  mJsonArrayClass;
-        private Object mJsonArray;
-
-        public JSONArray(String string) {
-            try {
-                mJsonArrayClass = Class.forName("org.json.JSONArray");
-                //noinspection unchecked
-                Constructor constructor = mJsonArrayClass.getConstructor(String.class);
-                mJsonArray = constructor.newInstance(string);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        public String toString(int indentType) {
-            try {
-                //noinspection unchecked
-                Method method = mJsonArrayClass.getDeclaredMethod("toString", int.class);
-                return (String) method.invoke(mJsonArray, indentType);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
         }
     }
 }

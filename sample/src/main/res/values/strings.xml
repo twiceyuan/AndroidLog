@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">Android Log</string>
-    <string name="example_json">{\"status\":0,\"name\":\"1\",\"url\":\"http://www.baidu.com\",\"image\":\"www.example.com/example.jpeg\",\"city_id\":3201,\"place\":\"recommends\",\"crts\":1450077009,\"_id\":\"573ae27c9c7684af638b4567\",\"upts\":1466492207}</string>
+    <string name="example_json">{"status": 200,"data": {"key": "value"}}</string>
 </resources>
