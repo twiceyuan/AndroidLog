@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void printJSONLog(View view) {
-        L.json(getString(R.string.example_json));
+        L.json("{\"status\": 200,\"data\": {\"key\": \"value\"}}");
     }
 
     public void printTagLog(View view) {
