@@ -1,12 +1,7 @@
 package com.twiceyuan.log;
 
-
-import android.text.TextUtils;
-import android.util.Log;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 
 /**
  * Created by twiceYuan on 8/18/16.
@@ -22,8 +17,8 @@ public class L {
     private static final String prefixChar = "│ ";
     private static final String suffixLine = "└───────────────────────────────────────────────────────────────────────────────────\n";
 
-    private static final int JSON_PRETTIFY_INDENT = 2;
-    private static final int DEFAULT_OFFSET       = 6;
+    private static final int JSON_PRETTIFY_INDENT = 2; // JSON 格式化参数
+    private static final int DEFAULT_OFFSET       = 6; // 在本类的静态方法中，默认有 6 层方法栈
 
     private static final Logger sDefaultLevelLogger = new Logger();
 
@@ -173,7 +168,7 @@ public class L {
             if (json.startsWith("[")) {
                 return new JSONArray(json).toString(JSON_PRETTIFY_INDENT);
             }
-        } catch (JSONException e) {
+        } catch (Exception e) {
             return "Invalid JSON Format.";
         }
         return "Invalid JSON Format.";
@@ -540,6 +535,113 @@ public class L {
 
         interface Callback {
             void call();
+        }
+    }
+
+    static class Log {
+
+        public static void i(String tag, String message) {
+            callNativeLog("i", tag, message, null);
+        }
+
+        public static void v(String tag, String message) {
+            callNativeLog("v", tag, message, null);
+        }
+
+        public static void w(String tag, String message) {
+            callNativeLog("w", tag, message, null);
+        }
+
+        public static void wtf(String tag, String message) {
+            callNativeLog("wtf", tag, message, null);
+        }
+
+        public static void e(String tag, String message) {
+            callNativeLog("e", tag, message, null);
+        }
+
+        public static void e(String tag, String message, Throwable throwable) {
+            callNativeLog("e", tag, message, throwable);
+        }
+
+        private static void callNativeLog(String methodName, String tag, String message, Throwable throwable) {
+            try {
+                Class logClass = Class.forName("android.util.Log");
+                if (throwable == null) {
+                    //noinspection unchecked
+                    Method method = logClass.getMethod(methodName, String.class, String.class);
+                    method.invoke(null, tag, message);
+                } else {
+                    //noinspection unchecked
+                    Method method = logClass.getMethod(methodName, String.class, String.class, Throwable.class);
+                    method.invoke(null, tag, message, throwable);
+                }
+            } catch (Exception e) {
+                throw new IllegalStateException("本项目只能在 Android 平台中使用: ");
+            }
+        }
+    }
+
+    static class TextUtils {
+        public static boolean isEmpty(String str) {
+            return str == null || str.length() == 0;
+        }
+    }
+
+    static class JSONObject {
+
+        private Class  mJsonObjectClass;
+        private Object mJsonObject;
+
+        public JSONObject(String string) {
+            try {
+
+                mJsonObjectClass = Class.forName("org.json.JSONObject");
+                //noinspection unchecked
+                Constructor constructor = mJsonObjectClass.getConstructor(String.class);
+                mJsonObject = constructor.newInstance(string);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        public String toString(int indentType) {
+            try {
+                //noinspection unchecked
+                Method method = mJsonObjectClass.getDeclaredMethod("toString", int.class);
+                return (String) method.invoke(mJsonObject, indentType);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+    }
+
+    static class JSONArray {
+
+        private Class  mJsonArrayClass;
+        private Object mJsonArray;
+
+        public JSONArray(String string) {
+            try {
+                mJsonArrayClass = Class.forName("org.json.JSONArray");
+                //noinspection unchecked
+                Constructor constructor = mJsonArrayClass.getConstructor(String.class);
+                mJsonArray = constructor.newInstance(string);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        public String toString(int indentType) {
+            try {
+                //noinspection unchecked
+                Method method = mJsonArrayClass.getDeclaredMethod("toString", int.class);
+                return (String) method.invoke(mJsonArray, indentType);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
         }
     }
 }
