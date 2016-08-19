@@ -1,19 +1,21 @@
-# AndroidLog [![](https://jitpack.io/v/twiceyuan/AndroidLog.svg)](https://jitpack.io/#twiceyuan/AndroidLog)
+# AndroidLog 
+
+<a href="http://www.methodscount.com/?lib=com.github.twiceyuan%3AAndroidLog%3A1.0.1"><img src="https://img.shields.io/badge/Methods and size-100 | 9 KB-e91e63.svg"/></a>
+[![](https://jitpack.io/v/twiceyuan/AndroidLog.svg)](https://jitpack.io/#twiceyuan/AndroidLog)
 
 
-一个类实现更实用的 Android Log 工具
+一个类实现更实用的 Android Log 工具 —— 1 个类，100 个方法、9 KiB
 
-* [x] 自动获得当前代码所在的类
+* [x] 自动获得当前代码所在的类作为 TAG
 * [x] 提供全局和局部的日志配置、开关
-* [x] 定位日志打印所在代码的位置
+* [x] 定位日志打印所在的代码位置
 * [x] JSON 的美化显示
-* [ ] 简单文档
-* [ ] 使用截图
 * [ ] TODO
 
 ## 使用
 
-host by jitpack https://jitpack.io/#twiceyuan/AndroidLog
+1. JitPack https://jitpack.io/#twiceyuan/AndroidLog
+2. 直接拷贝[类文件](library/src/main/java/com/twiceyuan/log/L.java)
 
 ### 普通打印日志
 ```java
