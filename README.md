@@ -1,4 +1,5 @@
-# AndroidLog
+# AndroidLog [![](https://jitpack.io/v/twiceyuan/AndroidLog.svg)](https://jitpack.io/#twiceyuan/AndroidLog)
+
 
 一个类实现更实用的 Android Log 工具
 
@@ -10,7 +11,9 @@
 * [ ] 使用截图
 * [ ] TODO
 
-## 示例
+## 使用
+
+host by jitpack https://jitpack.io/#twiceyuan/AndroidLog
 
 ### 普通打印日志
 ```java
