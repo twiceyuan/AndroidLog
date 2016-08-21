@@ -34,7 +34,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void tempShowCodePosition(View view) {
-        L.showPath().i("临时显示代码位置的日志");
+        new Runnable() {
+            @Override
+            public void run() {
+                L.showPath().i("临时显示代码位置的日志");
+            }
+        }.run();
     }
 
     public void printJSONLog(View view) {

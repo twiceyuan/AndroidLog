@@ -28,6 +28,6 @@ dependencies {
     //noinspection GradleDependency
     compile 'com.android.support:appcompat-v7:23.2.0'
 
-    compile 'com.github.twiceyuan:AndroidLog:f8fee49122'
-    // compile project(':library')
+    // compile 'com.github.twiceyuan:AndroidLog:f8fee49122'
+    compile project(':library')
 }

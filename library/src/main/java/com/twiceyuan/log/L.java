@@ -331,14 +331,13 @@ public class L {
                 getCallerClass(new StackTraceCallback() {
                     @Override
                     public void call(String callerName, StackTraceElement element) {
+                        String msg = message;
                         if (element == null) {
-                            String msg = message;
                             if ("json".equals(logType)) {
                                 msg = prettifyJsonWithBorder(message);
                             }
                             callNativeLog(logType, getTag(callerName), msg, throwable);
                         } else {
-                            String msg = message;
                             if ("json".equals(logType)) {
                                 msg = prettifyJson(message);
                             }
@@ -414,21 +413,29 @@ public class L {
                  * entries[3] 是调用 L 类中静态方法的代码
                  */
                 String fullClassName = entries[mMethodOffset].getClassName();
-                int lastPointIndex = fullClassName.lastIndexOf(".");
-                if (lastPointIndex > -1) {
-                    if (isShowPath) {
-                        callback.call(fullClassName.substring(lastPointIndex + 1), entries[mMethodOffset]);
-                    } else {
-                        callback.call(fullClassName.substring(lastPointIndex + 1), null);
-                    }
+                String callClassName = getCallerClassName(fullClassName);
+                if (isShowPath) {
+                    callback.call(callClassName, entries[mMethodOffset]);
                 } else {
-                    if (isShowPath) {
-                        callback.call(fullClassName, entries[mMethodOffset]);
-                    } else {
-                        callback.call(fullClassName, null);
-                    }
+                    callback.call(callClassName, null);
                 }
             }
+        }
+
+        private String getCallerClassName(String fullClassName) {
+            String className;
+            int lastPointIndex = fullClassName.lastIndexOf(".");
+            if (lastPointIndex > -1) {
+                className =  fullClassName.substring(lastPointIndex + 1);
+            } else {
+                className =  fullClassName;
+            }
+            int lastDollarIndex = className.lastIndexOf("$");
+            while (lastDollarIndex > -1) {
+                className = className.substring(0, lastDollarIndex);
+                lastDollarIndex = className.lastIndexOf("$");
+            }
+            return className;
         }
 
         public boolean getShowPath() {
