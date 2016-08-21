@@ -1,6 +1,6 @@
 # AndroidLog 
 
-<a href="http://www.methodscount.com/?lib=com.github.twiceyuan%3AAndroidLog%3A1.0.1"><img src="https://img.shields.io/badge/Methods and size-100 | 9 KB-e91e63.svg"/></a>
+<a href="http://www.methodscount.com/?lib=com.github.twiceyuan%3AAndroidLog%3A1.0.2"><img src="https://img.shields.io/badge/Methods and size-102 | 9 KB-e91e63.svg"/></a>
 [![](https://jitpack.io/v/twiceyuan/AndroidLog.svg)](https://jitpack.io/#twiceyuan/AndroidLog)
 
 
@@ -10,10 +10,6 @@
 * [x] 提供全局和局部的日志配置、开关
 * [x] 定位日志打印所在的代码位置
 * [x] JSON 的美化显示
-
-TODO
-
-* [ ] 自动识别所在的匿名内部类，使用外层的非匿名类的类名作为 TAG
 
 ## 使用
 
