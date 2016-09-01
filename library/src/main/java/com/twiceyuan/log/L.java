@@ -250,6 +250,7 @@ public class L {
      * @param throwable  日志 throwable 参数
      */
     private static void callNativeLog(String methodName, String tag, String message, Throwable throwable) {
+        message = String.valueOf(message);
         if ("json".equals(methodName)) {
             // 系统没有 json 类型的方法，使用 i 代替
             methodName = "i";
@@ -259,7 +260,9 @@ public class L {
             if (throwable == null) {
                 //noinspection unchecked
                 Method method = logClass.getMethod(methodName, String.class, String.class);
-                method.invoke(null, tag, message);
+                for (String line : message.split("\n")) {
+                    method.invoke(null, tag, line);
+                }
             } else {
                 //noinspection unchecked
                 Method method = logClass.getMethod(methodName, String.class, String.class, Throwable.class);
