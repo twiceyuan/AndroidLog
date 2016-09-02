@@ -65,4 +65,10 @@ public class MainActivity extends AppCompatActivity {
         logger.i("自定义 Logger");
         logger.e("自定义 Logger");
     }
+
+    public void logThrowable(View view) {
+        RuntimeException exception = new RuntimeException("Hello Exception!");
+        L.i(exception, "该错误的说明, INFO 级别");
+        L.showPath().i(exception, "带路径的");
+    }
 }
