@@ -1,6 +1,6 @@
 # AndroidLog 
 
-<a href="http://www.methodscount.com/?lib=com.github.twiceyuan%3AAndroidLog%3A1.0.2"><img src="https://img.shields.io/badge/Methods and size-102 | 9 KB-e91e63.svg"/></a>
+<a href="http://www.methodscount.com/?lib=com.github.twiceyuan%3AAndroidLog%3A1.0.4"><img src="https://img.shields.io/badge/Methods and size-110 | 9 KB-e91e63.svg"/></a>
 [![](https://jitpack.io/v/twiceyuan/AndroidLog.svg)](https://jitpack.io/#twiceyuan/AndroidLog)
 
 
