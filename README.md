@@ -3,8 +3,7 @@
 <a href="http://www.methodscount.com/?lib=com.github.twiceyuan%3AAndroidLog%3A1.0.4"><img src="https://img.shields.io/badge/Methods and size-110 | 9 KB-e91e63.svg"/></a>
 [![](https://jitpack.io/v/twiceyuan/AndroidLog.svg)](https://jitpack.io/#twiceyuan/AndroidLog)
 
-
-一个类实现更实用的 Android Log 工具 —— 1 个类，100 个方法、9 KiB
+简单的日志打印工具，方便定位日志代码、避免定义 Tag、格式化输出字符串、JSON
 
 * [x] 自动获得当前代码所在的类作为 TAG
 * [x] 提供全局和局部的日志配置、开关
