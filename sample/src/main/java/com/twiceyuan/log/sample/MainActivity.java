@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
 import com.twiceyuan.log.L;
+import com.twiceyuan.log.Logger;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -18,6 +19,7 @@ public class MainActivity extends AppCompatActivity {
         L.i("一条普通的日志，类型 INFO");
         L.v("一条普通的日志，类型 VERBOSE");
         L.w("一条普通的日志，类型 WARNING");
+        L.d("一条普通的日志，类型 DEBUG");
         L.e("一条普通的日志，类型 ERROR");
         L.wtf("一条普通的日志，类型 WTF");
     }
@@ -59,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void customLogger(View view) {
-        L.Logger logger = L.createLogger()
+        Logger logger = L.createLogger()
                 .setShowPath(true)
                 .setTag("CustomLog");
         logger.i("自定义 Logger");
