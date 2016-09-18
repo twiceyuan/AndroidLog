@@ -9,7 +9,7 @@ import java.util.Map;
  * Created by twiceYuan on 9/2/16.
  * Email: i@twiceyuan.com
  * Site: http://twiceyuan.com
- *
+ * <p>
  * Log 工具实现类, 每一个实例代表一种 Log 配置。默认配置拥有一个静态实例, 由 L 类维护
  */
 public class Logger implements Cloneable {
@@ -19,10 +19,10 @@ public class Logger implements Cloneable {
     private static final String prefixChar = "│ ";
     private static final String suffixLine = "└───────────────────────────────────────────────────────────────────────────────────\n";
 
-    private static final int JSON_PRETTIFY_INDENT = 2; // JSON 格式化参数
-    private static final int DEFAULT_OFFSET       = 4; // 在本类的静态方法中，默认有 4 层方法栈
-    private static final String CALL_CLASS_NAME   = "callClassName";
-    private static final String CALL_STACK_TRACE  = "callStackTrace";
+    private static final int    JSON_PRETTIFY_INDENT = 2; // JSON 格式化参数
+    private static final int    DEFAULT_OFFSET       = 7; // 在本类的静态方法中，默认有 4 层方法栈
+    private static final String CALL_CLASS_NAME      = "callClassName";
+    private static final String CALL_STACK_TRACE     = "callStackTrace";
 
     private int     mMethodOffset = DEFAULT_OFFSET;
     private boolean isShowPath    = false;
@@ -369,23 +369,19 @@ public class Logger implements Cloneable {
      */
     private Map<String, Object> getCallerClass() {
         Map<String, Object> result = new HashMap<String, Object>();
-        try {
-            throw new Exception();
-        } catch (Exception e) {
-            StackTraceElement[] entries = e.getStackTrace();
+        StackTraceElement[] entries = Thread.currentThread().getStackTrace();
 
-            /**
-             * entries[0] 是本方法
-             * entries[1] 是 Logger 类中的成员方法
-             * entries[2] 是 L 类中的静态方法代码或者直接调用 Logger 成员方法的代码
-             * entries[3] 是调用 L 类中静态方法的代码
-             */
-            String fullClassName = entries[mMethodOffset].getClassName();
-            String callClassName = getCallerClassName(fullClassName);
-            result.put(CALL_CLASS_NAME, callClassName);
-            if (isShowPath) {
-                result.put(CALL_STACK_TRACE, entries[mMethodOffset]);
-            }
+        /**
+         * entries[0] 是本方法
+         * entries[1] 是 Logger 类中的成员方法
+         * entries[2] 是 L 类中的静态方法代码或者直接调用 Logger 成员方法的代码
+         * entries[3] 是调用 L 类中静态方法的代码
+         */
+        String fullClassName = entries[mMethodOffset].getClassName();
+        String callClassName = getCallerClassName(fullClassName);
+        result.put(CALL_CLASS_NAME, callClassName);
+        if (isShowPath) {
+            result.put(CALL_STACK_TRACE, entries[mMethodOffset]);
         }
         return result;
     }
